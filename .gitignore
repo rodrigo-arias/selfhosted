@@ -1,0 +1,35 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+.idea/
+.vscode/
+
+# Docker
+docker-compose.override.yml
+.env
+*.bak
+
+# Container configs
+plex/
+qbittorrent/
+prowlarr/
+sonarr/
+radarr/
+bazarr/
+tautulli/
+npm/
+portainer/
+
+# Media data
+data/movies/
+data/tv/
+data/downloads/
+data/transcode/
+
+# Logs
+*.log
+logs/
+
