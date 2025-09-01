@@ -1,4 +1,4 @@
-# plexarr
+# Plexarr
 
 Self-hosted **Plex + Servarr stack** with Docker:
 
@@ -73,6 +73,43 @@ docker compose up -d
 - Tautulli: `http://localhost:8181`  
 
 > When using `.lan` domains, configure them via NPM and `/etc/hosts` or a local DNS server.
+
+---
+
+## 🔑 Nginx Proxy Manager (NPM) login
+
+After running the stack, access the NPM admin panel at:
+
+👉 `http://localhost:81`
+
+Default credentials:
+
+- **Email**: `admin@example.com`  
+- **Password**: `changeme`
+
+On first login, NPM will force you to:
+
+1. Set a real email address.  
+2. Change the admin password.  
+
+---
+
+## ⚙️ Configuring Proxy Hosts in NPM
+
+To expose services via clean `.lan` domains:
+
+1. Go to **Hosts → Proxy Hosts → Add Proxy Host**.  
+2. Fill in:  
+   - **Domain Names**: e.g. `plex.lan`  
+   - **Scheme**: `http`  
+   - **Forward Hostname/IP**: container name (e.g. `plex`, `sonarr`, `radarr`, …)  
+   - **Forward Port**: service port (e.g. `32400` for Plex)  
+3. Options:  
+   - **Websockets**: enable for Plex.  
+   - **Block Common Exploits**: disable for Plex, enable for others.  
+4. Save and test.
+
+Finally, map the `.lan` domains to your server in `/etc/hosts` or via a local DNS (Pi-hole/AdGuard).
 
 ---
 
