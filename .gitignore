@@ -21,7 +21,8 @@ radarr/
 bazarr/
 tautulli/
 npm/
-portainer/
+pihole/
+uptime-kuma/
 
 # Media data
 data/movies/

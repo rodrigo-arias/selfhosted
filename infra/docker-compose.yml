@@ -1,0 +1,52 @@
+name: infra
+
+networks:
+  proxy:
+    external: true   # Shared external network so all stacks can talk to each other
+
+services:
+  # --- Nginx Proxy Manager: reverse proxy + UI for domain mapping
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: npm
+    restart: unless-stopped
+    ports:
+      - "80:80"     # HTTP
+      - "443:443"   # HTTPS
+      - "81:81"     # Admin UI
+    volumes:
+      - ./npm/data:/data
+      - ./npm/letsencrypt:/etc/letsencrypt
+    environment:
+      TZ: ${TZ}
+    networks: [proxy]
+
+  # --- Pi-hole: DNS server + ad/tracker blocking
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"    # DNS (TCP)
+      - "53:53/udp"    # DNS (UDP)
+      - "8081:80/tcp"  # Pi-hole Web UI mapped to host 8081
+    environment:
+      TZ: ${TZ}
+      WEBPASSWORD: ${PIHOLE_WEBPASSWORD}
+    volumes:
+      - ./pihole/etc-pihole:/etc/pihole
+      - ./pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+    networks: [proxy]
+
+  # --- Uptime Kuma: monitor uptime and Internet connectivity
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    expose:
+      - "3001"   # Web UI (proxied through NPM)
+    volumes:
+      - ./uptime-kuma/data:/app/data
+    environment:
+      TZ: ${TZ}
+    networks: [proxy]

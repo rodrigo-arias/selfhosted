@@ -1,0 +1,98 @@
+name: downloads
+
+networks:
+  proxy:
+    external: true   # Connect to the same proxy network for NPM access
+
+services:
+  # --- qBittorrent: torrent client
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+      WEBUI_PORT: 8080
+    volumes:
+      - ./qbittorrent/config:/config
+      - ../data/downloads:/downloads
+    expose:
+      - "8080"   # Web UI
+    networks: [proxy]
+
+  # --- Prowlarr: indexer aggregator for Radarr/Sonarr
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    volumes:
+      - ./prowlarr/config:/config
+    expose:
+      - "9696"   # Web UI
+    networks: [proxy]
+
+  # --- Sonarr: manage and download TV shows
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    volumes:
+      - ./sonarr/config:/config
+      - ../data/tv:/tv
+      - ../data/downloads:/downloads
+    expose:
+      - "8989"   # Web UI
+    networks: [proxy]
+    depends_on:
+      - qbittorrent
+      - prowlarr
+
+  # --- Radarr: manage and download movies
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    volumes:
+      - ./radarr/config:/config
+      - ../data/movies:/movies
+      - ../data/downloads:/downloads
+    expose:
+      - "7878"   # Web UI
+    networks: [proxy]
+    depends_on:
+      - qbittorrent
+      - prowlarr
+
+  # --- Bazarr: download and manage subtitles
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    volumes:
+      - ./bazarr/config:/config
+      - ../data/movies:/movies
+      - ../data/tv:/tv
+    expose:
+      - "6767"   # Web UI
+    networks: [proxy]
+    depends_on:
+      - radarr
+      - sonarr
