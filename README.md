@@ -76,9 +76,9 @@ docker compose up -d
 
 ---
 
-## 🔑 Nginx Proxy Manager (NPM) login
+## 🔑 Nginx Proxy Manager (NPM)
 
-After running the stack, access the NPM admin panel at:
+Access the NPM admin panel at:
 
 👉 `http://localhost:81`
 
@@ -87,51 +87,40 @@ Default credentials:
 - **Email**: `admin@example.com`  
 - **Password**: `changeme`
 
-On first login, NPM will force you to:
-
+On first login, NPM will force you to:  
 1. Set a real email address.  
 2. Change the admin password.  
 
----
+### ⚙️ Adding Proxy Hosts
 
-## ⚙️ Configuring Proxy Hosts in NPM
-
-To expose services via clean `.lan` domains:
-
-1. Go to **Hosts → Proxy Hosts → Add Proxy Host**.  
-2. Fill in:  
-   - **Domain Names**: e.g. `plex.lan`  
-   - **Scheme**: `http`  
-   - **Forward Hostname/IP**: container name (e.g. `plex`, `sonarr`, `radarr`, …)  
-   - **Forward Port**: service port (e.g. `32400` for Plex)  
-3. Options:  
-   - **Websockets**: enable for Plex.  
-   - **Block Common Exploits**: disable for Plex, enable for others.  
-4. Save and test.
-
-Finally, map the `.lan` domains to your server in `/etc/hosts` or via a local DNS (Pi-hole/AdGuard).
+- Domain: e.g. `plex.lan`  
+- Scheme: `http`  
+- Forward Hostname/IP: container name (e.g. `plex`, `sonarr`, `radarr`)  
+- Forward Port: internal service port (`32400` for Plex, `8989` Sonarr, etc.)  
+- Options:  
+  - **Websockets**: enable for Plex.  
+  - **Block Common Exploits**: disable for Plex, enable for others.  
 
 ---
 
 ## 🌐 LAN domains with NPM
 
-To avoid remembering ports:
+Examples:
 
-- `plex.lan` → `plex:32400` (Websockets ON, Block Common Exploits OFF)  
+- `plex.lan` → `plex:32400`  
 - `sonarr.lan` → `sonarr:8989`  
 - `radarr.lan` → `radarr:7878`  
 - `prowlarr.lan` → `prowlarr:9696`  
 - `torrent.lan` → `qbittorrent:8080`  
 - `bazarr.lan` → `bazarr:6767`  
 - `tautulli.lan` → `tautulli:8181`  
-- `portainer.lan` → `portainer:9000` (or `9443`)  
+- `portainer.lan` → `portainer:9000`  
 
-Add entries to **/etc/hosts** on your system:  
+Update `/etc/hosts` to resolve domains:
+
 ```
 192.168.x.x plex.lan sonarr.lan radarr.lan prowlarr.lan torrent.lan bazarr.lan tautulli.lan portainer.lan npm.lan
 ```
-
-> Pro tip: use Pi-hole / AdGuard Home for local DNS instead of editing hosts per device.
 
 ---
 
@@ -146,15 +135,44 @@ Add entries to **/etc/hosts** on your system:
 - **qBittorrent**  
   - Scheduler: downloads only from 00:00–07:00 (optional).  
   - Adjust connections and disk cache (256–512 MB).  
+  - Default username: `admin`.  
+  - First run: a **temporary password** is shown in logs. Retrieve it with:  
+    ```bash
+    docker logs qbittorrent
+    ```  
+  - After logging in, change password in: *Tools → Options → Web UI → Authentication*.  
 - **Bazarr**  
-  - Languages: `eng`, `spa`. Prefer `.srt` to avoid subtitle burn-in transcode.  
+  - Languages: `eng`, `spa`.  
+  - Integrate with Radarr (7878) and Sonarr (8989) using their API Keys.  
+  - Enable providers (opensubtitles, subscene, etc.).  
+  - Place subtitles next to video files.  
 - **Plex**  
   - Libraries: `/movies`, `/tv`.  
   - Scheduled library scans at night.  
   - Transcode directory: `/transcode` (SSD).  
-  - Set clients to prefer **Direct Play** (Infuse on Apple TV is ideal).  
+  - Prefer **Direct Play** (Infuse on Apple TV recommended).  
 - **Tautulli**  
   - Connect to Plex and set alerts (Telegram, Discord, email).  
+
+---
+
+## 📡 Recommended indexers
+
+With only RARBG (closed) and YTS you won’t see many results. Add more in Prowlarr:
+
+### Public
+- **1337x**  
+- **EZTV** (TV)  
+- **LimeTorrents**  
+- **Nyaa** (anime)  
+
+### Private (if invited)
+- **IPTorrents**  
+- **HDBits**  
+- **PassThePopcorn**  
+- **BroadcasTheNet**  
+
+> In Prowlarr: *Indexers → Add Indexer* → search and add. Then sync to Radarr/Sonarr.
 
 ---
 
@@ -179,7 +197,7 @@ docker compose up -d
 docker compose logs -f <service>
 ```
 
-- **Backup configs**: copy `./plex/config`, `./sonarr/config`, etc.
+- **Backup configs**: copy `./plex/config`, `./sonarr/config`, `./npm/data`, etc.
 
 ---
 
