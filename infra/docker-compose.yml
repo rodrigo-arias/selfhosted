@@ -2,7 +2,7 @@ name: infra
 
 networks:
   proxy:
-    external: true   # Shared external network so all stacks can talk to each other
+    external: true   # Connect to the same proxy network for NPM access
 
 services:
   # --- Nginx Proxy Manager: reverse proxy + UI for domain mapping

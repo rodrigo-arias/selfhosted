@@ -22,8 +22,7 @@ This stack handles download automation:
 - **Radarr** → http://radarr.lan (7878)  
   - Root folder: `/movies`  
   - Downloads: `/downloads`  
-- **Bazarr** → http://bazarr.lan (6767)  
-  - Languages: `eng`, `spa`  
+- **Bazarr** → http://bazarr.lan (6767)
   - Connect to Sonarr & Radarr using API keys  
 
 ---

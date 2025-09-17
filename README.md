@@ -28,12 +28,12 @@ Each subfolder contains its own `docker-compose.yml` and `README.md` with setup 
 | `npm.lan`      | Nginx Proxy Manager   | infra      | 81    | Reverse proxy & UI                       |
 | `pihole.lan`   | Pi-hole               | infra      | 8081  | DNS + ad/tracker blocking                |
 | `kuma.lan`     | Uptime Kuma           | infra      | 3001  | Service & Internet monitoring            |
-| `torrent.lan`  | qBittorrent           | downloads  | 8080  | Torrent client (Web UI)                  |
+| `torrent.lan`  | qBittorrent           | downloads  | 8080  | Torrent client                           |
 | `prowlarr.lan` | Prowlarr              | downloads  | 9696  | Indexer manager                          |
 | `sonarr.lan`   | Sonarr                | downloads  | 8989  | TV shows manager                         |
 | `radarr.lan`   | Radarr                | downloads  | 7878  | Movies manager                           |
 | `bazarr.lan`   | Bazarr                | downloads  | 6767  | Subtitles manager                        |
-| `plex.lan`     | Plex Media Server     | streaming  | 32400 | Media server (disable exploits in NPM)   |
+| `plex.lan`     | Plex Media Server     | streaming  | 32400 | Media server                             |
 | `tautulli.lan` | Tautulli              | streaming  | 8181  | Plex monitoring & stats                  |
 
 ## Bootstrap

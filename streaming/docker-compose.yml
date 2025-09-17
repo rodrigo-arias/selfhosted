@@ -2,7 +2,7 @@ name: streaming
 
 networks:
   proxy:
-    external: true   # Connect Plex and Tautulli to proxy for NPM access
+    external: true   # Connect to the same proxy network for NPM access
 
 services:
   # --- Plex Media Server: stream movies and TV shows
