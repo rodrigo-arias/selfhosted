@@ -36,7 +36,36 @@ Each subfolder contains its own `docker-compose.yml` and `README.md` with setup 
 | `plex.lan`     | Plex Media Server     | streaming  | 32400 | Media server                             |
 | `tautulli.lan` | Tautulli              | streaming  | 8181  | Plex monitoring & stats                  |
 
-## Bootstrap
+## Setup
+
+### Environment Variables
+
+Configure the following variables in `.env`:
+
+- `PUID` - User ID for Docker containers (usually 1000)
+- `PGID` - Group ID for Docker containers (usually 1000)
+- `TZ` - Time zone (e.g., America/Argentina/Buenos_Aires)
+- `APPDATA_ROOT` - Path for Docker application data and configurations
+- `MEDIA_ROOT` - Path for media files (movies, TV shows, downloads, etc.)
+- `NAS_IP` - Fixed IP address of your NAS/server
+- `QBIT_WEBUI_USERNAME` - qBittorrent web UI username (default: admin)
+- `QBIT_WEBUI_PASSWORD` - qBittorrent web UI password (leave empty for auto-generation)
+
+### Required Folders
+
+Create the following folder structure under `MEDIA_ROOT`:
+
+```bash
+# Create media folders
+mkdir -p "${MEDIA_ROOT}/movies"     # Movie files
+mkdir -p "${MEDIA_ROOT}/tv"         # TV show files  
+mkdir -p "${MEDIA_ROOT}/downloads"  # Downloaded content
+mkdir -p "${MEDIA_ROOT}/transcode"  # Plex transcoding cache (optional)
+```
+
+The `APPDATA_ROOT` folders will be created automatically by Docker containers on first run.
+
+## Deployment
 
 ```bash
 # Create the shared proxy network (only once)

@@ -8,13 +8,34 @@ This stack includes infrastructure and utility services:
 
 ---
 
-## Services
-- **NPM UI** → http://npm.lan (port 81 internally)
-  - Admin panel: http://localhost:81/login
-  - Default login: `admin@example.com / changeme`  
-  - Change email & password on first login  
-- **Pi-hole** → http://pihole.lan (port 80 internal, mapped to host 8081)  
-  - Default password: set in `.env` (`PIHOLE_WEBPASSWORD`)  
-  - DNS server for LAN → point router DHCP DNS to the NAS  
-- **Uptime Kuma** → http://kuma.lan (port 3001)  
-  - Add monitors (DNS, ping, HTTP) for LAN and WAN services
+## Configuration
+
+### Nginx Proxy Manager (NPM)
+
+1. Access the NPM UI → http://localhost:81/login  
+   - Default login: `admin@example.com / changeme`  
+   - Change credentials on first login.
+
+2. Add proxy hosts for infra services:
+
+| Domain       | Scheme | Forward Hostname | Forward Port | Cache Assets | Websockets | Block Common Exploits |
+|--------------|--------|------------------|--------------|--------------|------------|------------------------|
+| `pihole.lan` | http   | pihole           | 80           | Off          | Off        | On                     |
+| `kuma.lan`   | http   | uptime-kuma      | 3001         | Off          | On         | On                     |
+| `npm.lan`    | http   | npm              | 81           | Off          | Off        | On                     |
+
+*(add more services from other stacks as needed)*
+
+---
+
+### Pi-hole
+
+1. Set a password manually inside the container:
+
+```bash
+docker exec -it pihole pihole setpassword
+```
+- Access Pi-hole at http://pihole.lan (via NPM).
+- Point your router’s DNS server to the NAS IP to enable filtering for your LAN.
+
+---

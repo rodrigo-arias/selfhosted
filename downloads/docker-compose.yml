@@ -16,8 +16,8 @@ services:
       TZ: ${TZ}
       WEBUI_PORT: 8080
     volumes:
-      - ./qbittorrent/config:/config
-      - ../data/downloads:/downloads
+      - ${APPDATA_ROOT}/qbittorrent/config:/config
+      - ${MEDIA_ROOT}/downloads:/downloads
     expose:
       - "8080"   # Web UI
     networks: [proxy]
@@ -32,7 +32,7 @@ services:
       PGID: ${PGID}
       TZ: ${TZ}
     volumes:
-      - ./prowlarr/config:/config
+      - ${APPDATA_ROOT}/prowlarr/config:/config
     expose:
       - "9696"   # Web UI
     networks: [proxy]
@@ -47,9 +47,9 @@ services:
       PGID: ${PGID}
       TZ: ${TZ}
     volumes:
-      - ./sonarr/config:/config
-      - ../data/tv:/tv
-      - ../data/downloads:/downloads
+      - ${APPDATA_ROOT}/sonarr/config:/config
+      - ${MEDIA_ROOT}/tv:/tv
+      - ${MEDIA_ROOT}/downloads:/downloads
     expose:
       - "8989"   # Web UI
     networks: [proxy]
@@ -67,9 +67,9 @@ services:
       PGID: ${PGID}
       TZ: ${TZ}
     volumes:
-      - ./radarr/config:/config
-      - ../data/movies:/movies
-      - ../data/downloads:/downloads
+      - ${APPDATA_ROOT}/radarr/config:/config
+      - ${MEDIA_ROOT}/movies:/movies
+      - ${MEDIA_ROOT}/downloads:/downloads
     expose:
       - "7878"   # Web UI
     networks: [proxy]
@@ -87,9 +87,9 @@ services:
       PGID: ${PGID}
       TZ: ${TZ}
     volumes:
-      - ./bazarr/config:/config
-      - ../data/movies:/movies
-      - ../data/tv:/tv
+      - ${APPDATA_ROOT}/bazarr/config:/config
+      - ${MEDIA_ROOT}/movies:/movies
+      - ${MEDIA_ROOT}/tv:/tv
     expose:
       - "6767"   # Web UI
     networks: [proxy]
