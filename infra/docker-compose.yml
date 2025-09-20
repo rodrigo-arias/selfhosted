@@ -15,8 +15,8 @@ services:
       - "443:443"   # HTTPS
       - "81:81"     # Admin UI
     volumes:
-      - ${APPDATA_ROOT}/npm/data:/data
-      - ${APPDATA_ROOT}/npm/letsencrypt:/etc/letsencrypt
+      - ${APPDATA_ROOT}/infra/npm/data:/data
+      - ${APPDATA_ROOT}/infra/npm/letsencrypt:/etc/letsencrypt
     environment:
       TZ: ${TZ}
     networks: [proxy]
@@ -33,8 +33,8 @@ services:
       TZ: ${TZ}
       DNSMASQ_LISTENING: "all"    # Listen on all interfaces (Docker/LAN)
     volumes:
-      - ${APPDATA_ROOT}/pihole/etc-pihole:/etc/pihole
-      - ${APPDATA_ROOT}/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+      - ${APPDATA_ROOT}/infra/pihole/etc-pihole:/etc/pihole
+      - ${APPDATA_ROOT}/infra/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
     networks: [proxy]
 
   # --- Uptime Kuma: monitor uptime and Internet connectivity
@@ -47,7 +47,7 @@ services:
     expose:
       - "3001"   # Web UI (proxied through NPM)
     volumes:
-      - ${APPDATA_ROOT}/uptime-kuma/data:/app/data
+      - ${APPDATA_ROOT}/infra/uptime-kuma/data:/app/data
     environment:
       TZ: ${TZ}
     networks: [proxy]

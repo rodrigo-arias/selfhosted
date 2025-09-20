@@ -26,7 +26,7 @@ Each subfolder contains its own `docker-compose.yml` and `README.md` with setup 
 | Domain         | Service               | Stack      | Port  | Notes                                    |
 |----------------|-----------------------|------------|-------|------------------------------------------|
 | `npm.lan`      | Nginx Proxy Manager   | infra      | 81    | Reverse proxy & UI                       |
-| `pihole.lan`   | Pi-hole               | infra      | 8081  | DNS + ad/tracker blocking                |
+| `pihole.lan`   | Pi-hole               | infra      | 80    | DNS + ad/tracker blocking                |
 | `kuma.lan`     | Uptime Kuma           | infra      | 3001  | Service & Internet monitoring            |
 | `torrent.lan`  | qBittorrent           | downloads  | 8080  | Torrent client                           |
 | `prowlarr.lan` | Prowlarr              | downloads  | 9696  | Indexer manager                          |
@@ -48,8 +48,6 @@ Configure the following variables in `.env`:
 - `APPDATA_ROOT` - Path for Docker application data and configurations
 - `MEDIA_ROOT` - Path for media files (movies, TV shows, downloads, etc.)
 - `NAS_IP` - Fixed IP address of your NAS/server
-- `QBIT_WEBUI_USERNAME` - qBittorrent web UI username (default: admin)
-- `QBIT_WEBUI_PASSWORD` - qBittorrent web UI password (leave empty for auto-generation)
 
 ### Required Folders
 

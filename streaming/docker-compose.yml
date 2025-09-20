@@ -16,7 +16,7 @@ services:
       TZ: ${TZ}
       VERSION: docker
     volumes:
-      - ${APPDATA_ROOT}/plex/config:/config
+      - ${APPDATA_ROOT}/streaming/plex/config:/config
       - ${MEDIA_ROOT}/movies:/movies
       - ${MEDIA_ROOT}/tv:/tv
       - ${MEDIA_ROOT}/transcode:/transcode   # optional SSD for better transcoding
@@ -34,7 +34,7 @@ services:
       PGID: ${PGID}
       TZ: ${TZ}
     volumes:
-      - ${APPDATA_ROOT}/tautulli/config:/config
+      - ${APPDATA_ROOT}/streaming/tautulli/config:/config
     expose:
       - "8181"   # Web UI
     networks: [proxy]
