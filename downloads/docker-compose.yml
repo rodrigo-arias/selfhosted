@@ -3,8 +3,34 @@ name: downloads
 networks:
   proxy:
     external: true   # Connect to the same proxy network for NPM access
+  vpn:
+    driver: bridge
 
 services:
+  # --- Gluetun: VPN client for qBittorrent
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${VPN_WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${VPN_WIREGUARD_ADDRESS}
+      - SERVER_COUNTRIES=${VPN_COUNTRY}
+      - UPDATER_PERIOD=24h
+      - VPN_PORT_FORWARDING=on
+      - FIREWALL_VPN_INPUT_PORTS=8080
+      - TZ=${TZ}
+    volumes:
+      - ${APPDATA_ROOT}/downloads/gluetun:/gluetun
+      - /tmp/gluetun:/tmp/gluetun    # Needed for forwarded_port
+    networks:
+      - proxy
+      - vpn
+
   # --- qBittorrent: torrent client
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
@@ -18,9 +44,28 @@ services:
     volumes:
       - ${APPDATA_ROOT}/downloads/qbittorrent/config:/config
       - ${MEDIA_ROOT}/downloads:/downloads
-    expose:
-      - "8080"   # Web UI
-    networks: [proxy]
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+
+  # --- gluetun qbittorrent port manager
+  gluetun-port-manager:
+    image: snoringdragon/gluetun-qbittorrent-port-manager:1.0
+    container_name: gluetun-port-manager
+    restart: unless-stopped
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+      - qbittorrent
+    environment:
+      - QB_USERNAME=${QBITTORRENT_USER}
+      - QB_PASSWORD=${QBITTORRENT_PASS}
+      - CHECK_INTERVAL=30
+      - QB_HOST=localhost
+      - QB_PORT=8080
+    volumes:
+      - /tmp/gluetun:/tmp/gluetun
+      - ${APPDATA_ROOT}/downloads/qbittorrent/config:/config
 
   # --- Prowlarr: indexer aggregator for Radarr/Sonarr
   prowlarr:
