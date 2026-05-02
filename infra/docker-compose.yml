@@ -32,6 +32,7 @@ services:
     environment:
       TZ: ${TZ}
       DNSMASQ_LISTENING: "all"    # Listen on all interfaces (Docker/LAN)
+      FTLCONF_misc_dnsmasq_lines: "address=/${DOMAIN}/${NAS_IP}"
     volumes:
       - ${APPDATA_ROOT}/infra/pihole/etc-pihole:/etc/pihole
       - ${APPDATA_ROOT}/infra/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
