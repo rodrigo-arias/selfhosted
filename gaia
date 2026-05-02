@@ -1,0 +1,241 @@
+#!/usr/bin/env bash
+# gaia — interactive CLI for the selfhosted stack.
+# Run `gaia install` once to bootstrap, then just `gaia`.
+
+set -euo pipefail
+
+if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then
+  echo "gaia requires bash 4+ (current: $BASH_VERSION)" >&2
+  exit 1
+fi
+
+SCRIPT_DIR=$(cd -- "$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}")")" &>/dev/null && pwd)
+ENV_FILE="$SCRIPT_DIR/.env"
+TOOLS_DIR="$SCRIPT_DIR/.tools"
+STACKS=(infra downloads streaming)
+ALL_TARGET="Todos los stacks"
+
+# --- gum detection (preferred at .tools/gum, fallback to PATH, then bash select)
+if   [ -x "$TOOLS_DIR/gum" ];        then GUM="$TOOLS_DIR/gum"
+elif command -v gum >/dev/null 2>&1; then GUM="gum"
+else                                      GUM=""
+fi
+
+pick() {
+  local title="$1"; shift
+  if [ -n "$GUM" ]; then
+    "$GUM" choose --header "$title" "$@"
+  else
+    echo "$title" >&2
+    local PS3="> "
+    select c in "$@"; do
+      [ -n "$c" ] && { echo "$c"; return 0; }
+    done
+  fi
+}
+
+confirm() {
+  local prompt="$1"
+  if [ -n "$GUM" ]; then
+    "$GUM" confirm "$prompt"
+  else
+    read -r -p "$prompt [y/N] " ans
+    [[ "$ans" =~ ^[Yy]$ ]]
+  fi
+}
+
+# --- service → stack discovery
+declare -A SERVICE_STACK
+build_service_map() {
+  for stack in "${STACKS[@]}"; do
+    local f="$SCRIPT_DIR/$stack/docker-compose.yml"
+    [ -f "$f" ] || continue
+    while IFS= read -r svc; do
+      [ -n "$svc" ] && SERVICE_STACK["$svc"]="$stack"
+    done < <(docker compose -f "$f" --env-file "$ENV_FILE" config --services 2>/dev/null)
+  done
+}
+
+services_sorted() { printf '%s\n' "${!SERVICE_STACK[@]}" | sort; }
+
+is_stack() {
+  local x="$1"
+  for s in "${STACKS[@]}"; do [ "$s" = "$x" ] && return 0; done
+  return 1
+}
+
+compose_in() {
+  local stack="$1"; shift
+  echo "==> [$stack] docker compose $*" >&2
+  (cd "$SCRIPT_DIR/$stack" && docker compose --env-file "$ENV_FILE" "$@")
+}
+
+# --- actions
+
+action_up() {
+  build_service_map
+  local target
+  target=$(pick "Up — what to start?" "$ALL_TARGET" "${STACKS[@]}" $(services_sorted)) || exit 0
+  [ -z "$target" ] && exit 0
+
+  if [ "$target" = "$ALL_TARGET" ]; then
+    for s in "${STACKS[@]}"; do compose_in "$s" up -d; done
+  elif is_stack "$target"; then
+    compose_in "$target" up -d
+  else
+    compose_in "${SERVICE_STACK[$target]}" up -d "$target"
+  fi
+}
+
+action_down() {
+  build_service_map
+  local target
+  target=$(pick "Down — what to stop?" "$ALL_TARGET" "${STACKS[@]}" $(services_sorted)) || exit 0
+  [ -z "$target" ] && exit 0
+  confirm "Stop '$target'?" || exit 0
+
+  if [ "$target" = "$ALL_TARGET" ]; then
+    for s in "${STACKS[@]}"; do compose_in "$s" down; done
+  elif is_stack "$target"; then
+    compose_in "$target" down
+  else
+    # service-level down = stop (preserves volumes, no orphan removal)
+    compose_in "${SERVICE_STACK[$target]}" stop "$target"
+  fi
+}
+
+action_restart() {
+  build_service_map
+  local target
+  target=$(pick "Restart — what to restart?" "${STACKS[@]}" $(services_sorted)) || exit 0
+  [ -z "$target" ] && exit 0
+  confirm "Restart '$target'?" || exit 0
+
+  if is_stack "$target"; then
+    compose_in "$target" restart
+  else
+    compose_in "${SERVICE_STACK[$target]}" restart "$target"
+  fi
+}
+
+action_logs() {
+  build_service_map
+  local target
+  target=$(pick "Logs — for what?" "${STACKS[@]}" $(services_sorted)) || exit 0
+  [ -z "$target" ] && exit 0
+
+  if is_stack "$target"; then
+    compose_in "$target" logs -f --tail 100
+  else
+    compose_in "${SERVICE_STACK[$target]}" logs -f --tail 100 "$target"
+  fi
+}
+
+action_status() {
+  build_service_map
+  local target
+  target=$(pick "Status — for what?" "$ALL_TARGET" "${STACKS[@]}" $(services_sorted)) || exit 0
+  [ -z "$target" ] && exit 0
+
+  if [ "$target" = "$ALL_TARGET" ]; then
+    for s in "${STACKS[@]}"; do compose_in "$s" ps; done
+  elif is_stack "$target"; then
+    compose_in "$target" ps
+  else
+    compose_in "${SERVICE_STACK[$target]}" ps "$target"
+  fi
+}
+
+action_sync() {
+  echo "==> git pull in $SCRIPT_DIR" >&2
+  (cd "$SCRIPT_DIR" && git pull)
+}
+
+# --- install (the only non-interactive subcommand)
+
+cmd_install() {
+  local arch a ver
+  arch=$(uname -m)
+  case "$arch" in
+    x86_64)        a=x86_64 ;;
+    aarch64|arm64) a=arm64  ;;
+    *) echo "Unsupported architecture: $arch" >&2; exit 1 ;;
+  esac
+
+  mkdir -p "$TOOLS_DIR"
+
+  ver=$(curl -fsSL https://api.github.com/repos/charmbracelet/gum/releases/latest \
+        | grep '"tag_name"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
+  if [ -z "$ver" ]; then
+    echo "Could not fetch latest gum version from GitHub" >&2
+    exit 1
+  fi
+
+  if [ -x "$TOOLS_DIR/gum" ] && "$TOOLS_DIR/gum" --version 2>/dev/null | grep -q "v$ver"; then
+    echo "gum v$ver already installed at $TOOLS_DIR"
+  else
+    local tar="/tmp/gum_${ver}_Linux_${a}.tar.gz"
+    local dir="/tmp/gum_${ver}_Linux_${a}"
+    echo "Downloading gum v$ver for Linux $a..."
+    curl -fsSL "https://github.com/charmbracelet/gum/releases/download/v${ver}/gum_${ver}_Linux_${a}.tar.gz" -o "$tar"
+    tar xzf "$tar" -C /tmp/
+    mv "$dir/gum" "$TOOLS_DIR/gum"
+    chmod +x "$TOOLS_DIR/gum"
+    rm -rf "$tar" "$dir"
+    echo "gum installed: $TOOLS_DIR/gum"
+  fi
+
+  if [ ! -L "$TOOLS_DIR/gaia" ]; then
+    ln -s ../gaia "$TOOLS_DIR/gaia"
+    echo "Symlink created: $TOOLS_DIR/gaia -> ../gaia"
+  fi
+
+  if ! grep -qF "$TOOLS_DIR" "$HOME/.bashrc" 2>/dev/null; then
+    {
+      echo ""
+      echo "# gaia CLI"
+      echo "export PATH=\"\$PATH:$TOOLS_DIR\""
+    } >> "$HOME/.bashrc"
+    echo "PATH added to ~/.bashrc"
+  else
+    echo "PATH already configured in ~/.bashrc"
+  fi
+
+  echo ""
+  echo "OK. Reload your shell or run: source ~/.bashrc"
+}
+
+# --- main dispatch
+
+case "${1:-}" in
+  install)
+    cmd_install
+    ;;
+  help|-h|--help)
+    cat <<'EOF'
+gaia — interactive CLI for the selfhosted stack
+
+Usage:
+  gaia            Open interactive menu
+  gaia install    One-time setup: download gum and configure PATH
+  gaia help       Show this help
+EOF
+    ;;
+  "")
+    action=$(pick "What do you want to do?" Up Down Restart Logs Status Sync Exit) || exit 0
+    case "$action" in
+      Up)      action_up ;;
+      Down)    action_down ;;
+      Restart) action_restart ;;
+      Logs)    action_logs ;;
+      Status)  action_status ;;
+      Sync)    action_sync ;;
+      Exit|"") exit 0 ;;
+    esac
+    ;;
+  *)
+    echo "Unknown argument: $1" >&2
+    echo "Run 'gaia help' to see options." >&2
+    exit 2
+    ;;
+esac

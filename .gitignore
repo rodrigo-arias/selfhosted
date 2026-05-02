@@ -12,6 +12,9 @@ docker-compose.override.yml
 .env
 *.bak
 
+# CLI tooling (gum binary, gaia symlink)
+.tools/
+
 # Container configs
 plex/
 qbittorrent/
