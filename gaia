@@ -15,6 +15,13 @@ TOOLS_DIR="$SCRIPT_DIR/.tools"
 STACKS=(infra downloads streaming)
 ALL_TARGET="Todos los stacks"
 
+# --- docker access (auto-detect whether sudo is needed)
+if docker info >/dev/null 2>&1; then
+  DOCKER="docker"
+else
+  DOCKER="sudo docker"
+fi
+
 # --- gum detection (preferred at .tools/gum, fallback to PATH, then bash select)
 if   [ -x "$TOOLS_DIR/gum" ];        then GUM="$TOOLS_DIR/gum"
 elif command -v gum >/dev/null 2>&1; then GUM="gum"
@@ -52,7 +59,7 @@ build_service_map() {
     [ -f "$f" ] || continue
     while IFS= read -r svc; do
       [ -n "$svc" ] && SERVICE_STACK["$svc"]="$stack"
-    done < <(docker compose -f "$f" --env-file "$ENV_FILE" config --services 2>/dev/null)
+    done < <($DOCKER compose -f "$f" --env-file "$ENV_FILE" config --services 2>/dev/null)
   done
 }
 
@@ -66,8 +73,8 @@ is_stack() {
 
 compose_in() {
   local stack="$1"; shift
-  echo "==> [$stack] docker compose $*" >&2
-  (cd "$SCRIPT_DIR/$stack" && docker compose --env-file "$ENV_FILE" "$@")
+  echo "==> [$stack] $DOCKER compose $*" >&2
+  (cd "$SCRIPT_DIR/$stack" && $DOCKER compose --env-file "$ENV_FILE" "$@")
 }
 
 # --- actions
@@ -146,11 +153,6 @@ action_status() {
   fi
 }
 
-action_sync() {
-  echo "==> git pull in $SCRIPT_DIR" >&2
-  (cd "$SCRIPT_DIR" && git pull)
-}
-
 # --- install (the only non-interactive subcommand)
 
 cmd_install() {
@@ -222,14 +224,13 @@ Usage:
 EOF
     ;;
   "")
-    action=$(pick "What do you want to do?" Up Down Restart Logs Status Sync Exit) || exit 0
+    action=$(pick "What do you want to do?" Up Down Restart Logs Status Exit) || exit 0
     case "$action" in
       Up)      action_up ;;
       Down)    action_down ;;
       Restart) action_restart ;;
       Logs)    action_logs ;;
       Status)  action_status ;;
-      Sync)    action_sync ;;
       Exit|"") exit 0 ;;
     esac
     ;;
