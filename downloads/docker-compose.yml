@@ -22,7 +22,6 @@ services:
       - SERVER_COUNTRIES=${VPN_COUNTRY}
       - UPDATER_PERIOD=24h
       - VPN_PORT_FORWARDING=on
-      - FIREWALL_VPN_INPUT_PORTS=8080
       - TZ=${TZ}
     volumes:
       - ${APPDATA_ROOT}/downloads/gluetun:/gluetun
