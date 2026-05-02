@@ -65,6 +65,19 @@ build_service_map() {
 
 services_sorted() { printf '%s\n' "${!SERVICE_STACK[@]}" | sort; }
 
+# Build target option list: optionally "All", then each stack with its services
+# indented underneath. Requires SERVICE_STACK to be populated.
+# Usage: list_targets [all]
+list_targets() {
+  [ "${1:-}" = "all" ] && echo "$ALL_TARGET"
+  for stack in "${STACKS[@]}"; do
+    echo "$stack"
+    while IFS= read -r svc; do
+      [ "${SERVICE_STACK[$svc]:-}" = "$stack" ] && echo "  $svc"
+    done < <(services_sorted)
+  done
+}
+
 is_stack() {
   local x="$1"
   for s in "${STACKS[@]}"; do [ "$s" = "$x" ] && return 0; done
@@ -81,9 +94,11 @@ compose_in() {
 
 action_up() {
   build_service_map
+  mapfile -t opts < <(list_targets all)
   local target
-  target=$(pick "Up — what to start?" "$ALL_TARGET" "${STACKS[@]}" $(services_sorted)) || exit 0
+  target=$(pick "Up — what to start?" "${opts[@]}") || exit 0
   [ -z "$target" ] && exit 0
+  target="${target#  }"
 
   if [ "$target" = "$ALL_TARGET" ]; then
     for s in "${STACKS[@]}"; do compose_in "$s" up -d; done
@@ -96,9 +111,11 @@ action_up() {
 
 action_down() {
   build_service_map
+  mapfile -t opts < <(list_targets all)
   local target
-  target=$(pick "Down — what to stop?" "$ALL_TARGET" "${STACKS[@]}" $(services_sorted)) || exit 0
+  target=$(pick "Down — what to stop?" "${opts[@]}") || exit 0
   [ -z "$target" ] && exit 0
+  target="${target#  }"
   confirm "Stop '$target'?" || exit 0
 
   if [ "$target" = "$ALL_TARGET" ]; then
@@ -113,9 +130,11 @@ action_down() {
 
 action_restart() {
   build_service_map
+  mapfile -t opts < <(list_targets)
   local target
-  target=$(pick "Restart — what to restart?" "${STACKS[@]}" $(services_sorted)) || exit 0
+  target=$(pick "Restart — what to restart?" "${opts[@]}") || exit 0
   [ -z "$target" ] && exit 0
+  target="${target#  }"
   confirm "Restart '$target'?" || exit 0
 
   if is_stack "$target"; then
@@ -127,9 +146,11 @@ action_restart() {
 
 action_logs() {
   build_service_map
+  mapfile -t opts < <(list_targets)
   local target
-  target=$(pick "Logs — for what?" "${STACKS[@]}" $(services_sorted)) || exit 0
+  target=$(pick "Logs — for what?" "${opts[@]}") || exit 0
   [ -z "$target" ] && exit 0
+  target="${target#  }"
 
   if is_stack "$target"; then
     compose_in "$target" logs -f --tail 100
@@ -140,9 +161,11 @@ action_logs() {
 
 action_status() {
   build_service_map
+  mapfile -t opts < <(list_targets all)
   local target
-  target=$(pick "Status — for what?" "$ALL_TARGET" "${STACKS[@]}" $(services_sorted)) || exit 0
+  target=$(pick "Status — for what?" "${opts[@]}") || exit 0
   [ -z "$target" ] && exit 0
+  target="${target#  }"
 
   if [ "$target" = "$ALL_TARGET" ]; then
     for s in "${STACKS[@]}"; do compose_in "$s" ps; done
