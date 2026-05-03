@@ -16,13 +16,11 @@ docker-compose.override.yml
 .tools/
 
 # Container configs
-plex/
 qbittorrent/
 prowlarr/
 sonarr/
 radarr/
 bazarr/
-tautulli/
 npm/
 pihole/
 uptime-kuma/
@@ -31,7 +29,6 @@ uptime-kuma/
 data/movies/
 data/tv/
 data/downloads/
-data/transcode/
 
 # Logs
 *.log

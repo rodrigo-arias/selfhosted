@@ -12,7 +12,7 @@ fi
 SCRIPT_DIR=$(cd -- "$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}")")" &>/dev/null && pwd)
 ENV_FILE="$SCRIPT_DIR/.env"
 TOOLS_DIR="$SCRIPT_DIR/.tools"
-STACKS=(infra downloads streaming)
+STACKS=(infra downloads)
 ALL_TARGET="Todos los stacks"
 
 # --- docker access (auto-detect whether sudo is needed)
