@@ -3,8 +3,6 @@ name: downloads
 networks:
   proxy:
     external: true   # Connect to the same proxy network for NPM access
-  vpn:
-    driver: bridge
 
 services:
   # --- Gluetun: VPN client for qBittorrent
@@ -26,9 +24,7 @@ services:
     volumes:
       - ${APPDATA_ROOT}/downloads/gluetun:/gluetun
       - /tmp/gluetun:/tmp/gluetun    # Needed for forwarded_port
-    networks:
-      - proxy
-      - vpn
+    networks: [proxy]
 
   # --- qBittorrent: torrent client
   qbittorrent:
