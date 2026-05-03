@@ -2,6 +2,28 @@
 
 VPN-gated torrent client and the *arr automation suite. See the main [README](../README.md) for the service overview.
 
+## Network topology
+
+```mermaid
+flowchart LR
+    arrs["*arr"]
+
+    subgraph netns [Gluetun netns]
+        Gluetun
+        qBit[qBittorrent]
+        PortMgr[Port Manager]
+    end
+
+    VPN[VPN provider]
+
+    arrs -->|proxy network| Gluetun
+    Gluetun --- qBit
+    Gluetun --- PortMgr
+    Gluetun -->|VPN tunnel| VPN
+```
+
+qBittorrent and the port manager set `network_mode: service:gluetun`, sharing Gluetun's network namespace. Their entire traffic — torrent peers, trackers, WebUI requests — exits through the VPN tunnel. Other containers on the `proxy` Docker network reach qBittorrent's WebUI at `gluetun:8080`, since that port is bound on Gluetun's network interface.
+
 ## First-run configuration
 
 ### Gluetun
@@ -19,6 +41,7 @@ VPN-gated torrent client and the *arr automation suite. See the main [README](..
   ```
 
 - All torrent traffic routes through the VPN tunnel (network mode: `service:gluetun`).
+- If the WebUI rejects requests when accessed through NPM with a host-header error, in Settings → WebUI either disable "Host header validation" or add the reverse-proxy domain to the whitelist.
 
 ### Prowlarr
 
