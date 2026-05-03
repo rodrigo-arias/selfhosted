@@ -13,7 +13,7 @@ SCRIPT_DIR=$(cd -- "$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}")")" &>/dev/n
 ENV_FILE="$SCRIPT_DIR/.env"
 TOOLS_DIR="$SCRIPT_DIR/.tools"
 STACKS=(infra downloads)
-ALL_TARGET="Todos los stacks"
+ALL_TARGET="All stacks"
 
 # --- docker access (auto-detect whether sudo is needed)
 if docker info >/dev/null 2>&1; then
@@ -86,7 +86,7 @@ is_stack() {
 
 compose_in() {
   local stack="$1"; shift
-  echo "==> [$stack] $DOCKER compose $*" >&2
+  echo "==> [$stack] $*" >&2
   (cd "$SCRIPT_DIR/$stack" && $DOCKER compose --env-file "$ENV_FILE" "$@")
 }
 

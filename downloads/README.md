@@ -1,44 +1,48 @@
 # Downloads Stack
 
-This stack handles download automation:
+VPN-gated torrent client and the *arr automation suite. See the main [README](../README.md) for the service overview.
 
-- **Gluetun** → VPN client
-- **qBittorrent** → torrent client
-- **Gluetun Port Manager** → automatic port forwarding
-- **Prowlarr** → indexer manager  
-- **Sonarr** → TV shows  
-- **Radarr** → movies  
-- **Bazarr** → subtitles  
+## First-run configuration
 
----
+### Gluetun
 
-## Services
-- **Gluetun** → VPN tunnel for qBittorrent  
-  - Protocol: Wireguard  
-  - Port forwarding: Enabled
-- **qBittorrent** → http://torrent.lan (8080)  
-  - Username: `admin`  
-  - First run: password shown in logs → `docker logs qbittorrent`  
-  - All torrent traffic routed through VPN
-- **Gluetun Port Manager** → Automatic port management
-  - Updates qBittorrent with forwarded port from VPN
-- **Prowlarr** → http://prowlarr.lan (9696)  
-  - Configure indexers and sync with Sonarr/Radarr  
-- **Sonarr** → http://sonarr.lan (8989)  
-  - Root folder: `/tv`  
-  - Downloads: `/downloads`  
-- **Radarr** → http://radarr.lan (7878)  
-  - Root folder: `/movies`  
-  - Downloads: `/downloads`  
-- **Bazarr** → http://bazarr.lan (6767)
-  - Connect to Sonarr & Radarr using API keys  
+- Configured in `.env` via `VPN_SERVICE_PROVIDER`, `VPN_WIREGUARD_PRIVATE_KEY`, `VPN_WIREGUARD_ADDRESS`, `VPN_COUNTRY`.
+- Port forwarding is enabled; the Gluetun Port Manager sidecar pushes the forwarded port to qBittorrent automatically.
 
----
+### qBittorrent
+
+- Default username: `admin`.
+- First-run password is shown in the container logs:
+
+  ```bash
+  docker logs qbittorrent | grep -i password
+  ```
+
+- All torrent traffic routes through the VPN tunnel (network mode: `service:gluetun`).
+
+### Prowlarr
+
+- Add indexers (public or private).
+- Sync indexers to Sonarr and Radarr from Prowlarr's UI (Settings → Apps).
+
+### Sonarr
+
+- Root folder: `/tv`.
+- Download client: qBittorrent.
+
+### Radarr
+
+- Root folder: `/movies`.
+- Download client: qBittorrent.
+
+### Bazarr
+
+- Connect to Sonarr and Radarr using their API keys (Bazarr → Settings → Sonarr/Radarr).
 
 ## Workflow
-1. **Gluetun** → Establishes VPN connection with port forwarding
-2. **Gluetun Port Manager** → Updates qBittorrent with forwarded port
-3. **Prowlarr** → Add indexers (public/private)
-4. Sync to **Sonarr/Radarr**
-5. **Sonarr/Radarr** send torrents to qBittorrent  
-6. **Bazarr** downloads subtitles for managed media  
+
+1. Gluetun establishes the VPN tunnel with port forwarding.
+2. Gluetun Port Manager updates qBittorrent's listening port.
+3. Prowlarr feeds indexers to Sonarr and Radarr.
+4. Sonarr and Radarr send download requests to qBittorrent.
+5. Bazarr fetches subtitles for managed media.

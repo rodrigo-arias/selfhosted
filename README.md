@@ -1,87 +1,38 @@
 # Selfhosted
 
-A self-hosted stack of Docker services for home use, split into **infra**, **downloads**, and **streaming**.  
-All services are connected to a shared external Docker network called `proxy`, so they can be routed through **Nginx Proxy Manager (NPM)** with friendly `.lan` domains.
+A Docker-based home stack split into **infra** and **downloads**. Services share an external `proxy` Docker network and are reverse-proxied through **Nginx Proxy Manager** at `*.<your-domain>` on the LAN.
 
----
+## Quickstart
+
+1. Install prerequisites and configure `.env` — see [docs/setup.md](docs/setup.md).
+2. Deploy with the bundled `gaia` CLI or manually — see [docs/deployment.md](docs/deployment.md).
 
 ## Structure
 
 ```
 selfhosted/
 │
-├── infra/        # Infrastructure & utilities (NPM, Pi-hole, Uptime Kuma)
-├── downloads/    # Media automation & downloads (qBit, *arrs, Bazarr)
-├── streaming/    # Plex server & monitoring (Plex, Tautulli)
-├── data/         # Shared storage (movies, tv, downloads, transcode)
-└── .env          # Environment variables
+├── infra/        # Reverse proxy, DNS, monitoring
+├── downloads/    # VPN-gated torrent client + *arr stack
+├── data/         # Shared media (movies, tv, downloads)
+├── docs/         # Setup and deployment guides
+├── gaia          # Interactive deploy CLI
+└── .env          # Environment variables (gitignored; see .env.example)
 ```
 
-Each subfolder contains its own `docker-compose.yml` and `README.md` with setup instructions.
-
----
+Each stack folder has its own `docker-compose.yml` and a stack-specific README.
 
 ## Services
 
-| Domain         | Service               | Stack      | Port  | Notes                                    |
-|----------------|-----------------------|------------|-------|------------------------------------------|
-| `npm.lan`      | Nginx Proxy Manager   | infra      | 81    | Reverse proxy & UI                       |
-| `pihole.lan`   | Pi-hole               | infra      | 80    | DNS + ad/tracker blocking                |
-| `kuma.lan`     | Uptime Kuma           | infra      | 3001  | Service & Internet monitoring            |
-| `torrent.lan`  | qBittorrent           | downloads  | 8080  | Torrent client                           |
-| `prowlarr.lan` | Prowlarr              | downloads  | 9696  | Indexer manager                          |
-| `sonarr.lan`   | Sonarr                | downloads  | 8989  | TV shows manager                         |
-| `radarr.lan`   | Radarr                | downloads  | 7878  | Movies manager                           |
-| `bazarr.lan`   | Bazarr                | downloads  | 6767  | Subtitles manager                        |
-| `plex.lan`     | Plex Media Server     | streaming  | 32400 | Media server                             |
-| `tautulli.lan` | Tautulli              | streaming  | 8181  | Plex monitoring & stats                  |
+Subdomains map to services via proxy hosts configured in Nginx Proxy Manager. The names below are the ones used in this deploy — pick your own when setting up NPM.
 
-## Setup
-
-### Environment Variables
-
-Configure the following variables in `.env`:
-
-- `PUID` - User ID for Docker containers (usually 1000)
-- `PGID` - Group ID for Docker containers (usually 1000)
-- `TZ` - Time zone (e.g., America/Argentina/Buenos_Aires)
-- `APPDATA_ROOT` - Path for Docker application data and configurations
-- `MEDIA_ROOT` - Path for media files (movies, TV shows, downloads, etc.)
-- `NAS_IP` - Fixed IP address of your NAS/server
-
-### Required Folders
-
-Create the following folder structure under `MEDIA_ROOT`:
-
-```bash
-# Create media folders
-mkdir -p "${MEDIA_ROOT}/movies"     # Movie files
-mkdir -p "${MEDIA_ROOT}/tv"         # TV show files  
-mkdir -p "${MEDIA_ROOT}/downloads"  # Downloaded content
-mkdir -p "${MEDIA_ROOT}/transcode"  # Plex transcoding cache (optional)
-```
-
-The `APPDATA_ROOT` folders will be created automatically by Docker containers on first run.
-
-## Deployment
-
-```bash
-# Create the shared proxy network (only once)
-docker network create proxy || echo "ℹ️ Proxy network already exists"
-
-# Start Infra stack
-cd infra
-docker compose --env-file ../.env up -d
-
-# Start Downloads stack
-cd ../downloads
-docker compose --env-file ../.env up -d
-
-# Start Streaming stack
-cd ../streaming
-docker compose --env-file ../.env up -d
-
-# Return to project root
-cd ..
-echo "✅ All stacks started"
-```
+| Subdomain                  | Service              | Stack      |
+|----------------------------|----------------------|------------|
+| `proxy.<your-domain>`      | Nginx Proxy Manager  | infra      |
+| `dns.<your-domain>`        | Pi-hole              | infra      |
+| `status.<your-domain>`     | Uptime Kuma          | infra      |
+| `downloads.<your-domain>`  | qBittorrent (via Gluetun VPN) | downloads |
+| `indexer.<your-domain>`    | Prowlarr             | downloads  |
+| `tv.<your-domain>`         | Sonarr               | downloads  |
+| `movies.<your-domain>`     | Radarr               | downloads  |
+| `subs.<your-domain>`       | Bazarr               | downloads  |
