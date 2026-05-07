@@ -1,7 +1,5 @@
 # Deployment
 
-> Prerequisite: complete [setup](setup.md) first — Docker installed, `.env` configured, and the `proxy` Docker network created.
-
 The repo ships with `gaia`, an interactive CLI that wraps Docker Compose across the stacks. Manual deployment with plain `docker compose` is supported as a fallback.
 
 ## Using gaia (recommended)

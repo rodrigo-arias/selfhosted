@@ -20,7 +20,7 @@ Copy `.env.example` to `.env` and fill in:
 | `TZ` | Timezone (e.g. `America/Argentina/Buenos_Aires`) |
 | `APPDATA_ROOT` | Path for container application data |
 | `MEDIA_ROOT` | Path for media files (movies, TV, downloads) |
-| `NAS_IP` | Host LAN IP — used for direct port bindings and local DNS |
+| `LAN_IP` | Host LAN IP — used for direct port bindings and local DNS |
 | `DOMAIN` | Domain used for reverse-proxied services (`*.<DOMAIN>`) |
 | `VPN_SERVICE_PROVIDER`, `VPN_WIREGUARD_PRIVATE_KEY`, `VPN_WIREGUARD_ADDRESS`, `VPN_COUNTRY` | Gluetun VPN config for the downloads stack |
 | `QBITTORRENT_USER` / `QBITTORRENT_PASS` | qBittorrent credentials |

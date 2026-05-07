@@ -27,12 +27,12 @@ services:
     container_name: pihole
     restart: unless-stopped
     ports:
-      - "${NAS_IP}:53:53/tcp"    # DNS (TCP)
-      - "${NAS_IP}:53:53/udp"    # DNS (UDP)
+      - "${LAN_IP}:53:53/tcp"    # DNS (TCP)
+      - "${LAN_IP}:53:53/udp"    # DNS (UDP)
     environment:
       TZ: ${TZ}
       DNSMASQ_LISTENING: "all"    # Listen on all interfaces (Docker/LAN)
-      FTLCONF_misc_dnsmasq_lines: 'address=/${DOMAIN}/${NAS_IP};local=/${DOMAIN}/'
+      FTLCONF_misc_dnsmasq_lines: "address=/${DOMAIN}/${LAN_IP};local=/${DOMAIN}/"
     volumes:
       - ${APPDATA_ROOT}/infra/pihole/etc-pihole:/etc/pihole
       - ${APPDATA_ROOT}/infra/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
@@ -44,7 +44,7 @@ services:
     container_name: uptime-kuma
     restart: unless-stopped
     dns:
-      - "${NAS_IP}"   # Pi-hole DNS server
+      - "${LAN_IP}"   # Pi-hole DNS server
     expose:
       - "3001"   # Web UI (proxied through NPM)
     volumes:
@@ -85,7 +85,7 @@ services:
       TZ: ${TZ}
     networks: [proxy]
 
-  # --- Cloudflared: outbound tunnel to Cloudflare (no UI, no exposed ports)
+  # --- Cloudflared: outbound tunnel to Cloudflare
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared
