@@ -29,6 +29,8 @@ subscribe:
 
 `default-command` runs once per message; `$title` and `$message` are substituted by the ntfy CLI. Use the absolute path to `terminal-notifier` — LaunchAgents run with a minimal `PATH`.
 
+Topic names here must match what each publisher sends to — set the same names in Uptime Kuma (Settings → Notifications) and the *arr apps (Settings → Connect).
+
 ## LaunchAgent
 
 Create `~/Library/LaunchAgents/<reverse-domain>.ntfy.plist` (e.g. `com.example.ntfy.plist`):
