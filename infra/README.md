@@ -38,3 +38,44 @@ The admin password lives only in the Pi-hole config volume (`${APPDATA_ROOT}/inf
    ```
 
 2. Point your router's or clients' DNS to the NAS IP to enable LAN-wide filtering and resolution of `*.<your-domain>` (configured via the `FTLCONF_misc_dnsmasq_lines` env var in the compose file).
+
+### Homepage
+
+YAML files in `${APPDATA_ROOT}/infra/homepage/config/`, hot-reloaded on save. Create what you need; missing files fall back to defaults:
+
+- `settings.yaml` — title, theme, section layout.
+- `services.yaml` — service link cards grouped by section (name, icon, `href`).
+- `widgets.yaml` — top-of-page widgets. Useful: `resources` (host CPU/RAM/disk/temp), `search`, and `uptimekuma` pointing at `http://uptime-kuma:3001`.
+- `bookmarks.yaml` — optional.
+
+In NPM, add a proxy host for the apex domain (`<your-domain>`) → `homepage:3000`. Homepage rejects requests whose `Host` isn't in `HOMEPAGE_ALLOWED_HOSTS` — the compose file passes `${DOMAIN}`; extend it (comma-separated) if you serve it elsewhere too.
+
+The Docker socket is intentionally **not** mounted: Uptime Kuma already covers live status, and skipping it avoids exposing container env vars to the dashboard.
+
+### Ntfy
+
+Drop `server.yml` at `${APPDATA_ROOT}/infra/ntfy/etc/server.yml`. Minimum config, with ntfy.sh as the iOS push relay:
+
+```yaml
+base-url: "https://alerts.<your-domain>"
+upstream-base-url: "https://ntfy.sh"
+cache-file: "/var/cache/ntfy/cache.db"
+cache-duration: "12h"
+attachment-cache-dir: "/var/cache/ntfy/attachments"
+behind-proxy: true
+```
+
+`upstream-base-url` is what enables iOS notifications without your own APNs integration — ntfy forwards a poll to ntfy.sh, which pings the iPhone via Apple Push. `behind-proxy` makes ntfy trust `X-Forwarded-*` from NPM.
+
+In NPM, add a proxy host for `alerts.<your-domain>` → `ntfy:80` with **Websockets Support: On** (web UI and `--subscribe` need it).
+
+The container starts fine without `server.yml` (defaults, port 80), so the proxy host works immediately — adding the file just switches on the relay.
+
+### Cloudflared
+
+Tunnel-as-a-service: all routing lives in the Cloudflare Zero Trust dashboard.
+
+1. **Networks → Tunnels → Create a tunnel**, connector "Cloudflared", name it (e.g. `gaia`), copy the token from the install command.
+2. Set `CLOUDFLARE_TUNNEL_TOKEN=...` in `.env` and start the container.
+3. Under the tunnel's **Public Hostname** tab, add each subdomain you want exposed. Point the service at `https://npm:443` with **No TLS Verify** so NPM still terminates SSL and applies its proxy host rules.
+4. To gate a public route, create an **Access** application for the hostname (one-time PIN by email is free up to 50 users).

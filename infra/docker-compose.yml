@@ -52,3 +52,45 @@ services:
     environment:
       TZ: ${TZ}
     networks: [proxy]
+
+  # --- Homepage: dashboard at the apex domain
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    expose:
+      - "3000"   # Web UI (proxied through NPM)
+    volumes:
+      - ${APPDATA_ROOT}/infra/homepage/config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      TZ: ${TZ}
+      HOMEPAGE_ALLOWED_HOSTS: ${DOMAIN}
+    networks: [proxy]
+
+  # --- Ntfy: self-hosted push notifications
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    restart: unless-stopped
+    command: serve
+    ports:
+      - "8090:80"   # Direct access for CLI clients
+    expose:
+      - "80"   # Web UI + API (proxied through NPM)
+    volumes:
+      - ${APPDATA_ROOT}/infra/ntfy/etc:/etc/ntfy
+      - ${APPDATA_ROOT}/infra/ntfy/cache:/var/cache/ntfy
+    environment:
+      TZ: ${TZ}
+    networks: [proxy]
+
+  # --- Cloudflared: outbound tunnel to Cloudflare (no UI, no exposed ports)
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks: [proxy]

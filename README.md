@@ -28,11 +28,15 @@ Subdomains map to services via proxy hosts configured in Nginx Proxy Manager. Th
 
 | Subdomain                  | Service              | Stack      |
 |----------------------------|----------------------|------------|
+| `<your-domain>`            | Homepage (dashboard) | infra      |
 | `proxy.<your-domain>`      | Nginx Proxy Manager  | infra      |
 | `dns.<your-domain>`        | Pi-hole              | infra      |
 | `status.<your-domain>`     | Uptime Kuma          | infra      |
+| `alerts.<your-domain>`     | Ntfy                 | infra      |
 | `downloads.<your-domain>`  | qBittorrent (via Gluetun VPN) | downloads |
 | `indexer.<your-domain>`    | Prowlarr             | downloads  |
 | `tv.<your-domain>`         | Sonarr               | downloads  |
 | `movies.<your-domain>`     | Radarr               | downloads  |
 | `subs.<your-domain>`       | Bazarr               | downloads  |
+
+Cloudflared runs in the infra stack as well but has no UI — it opens an outbound tunnel to Cloudflare so selected subdomains can be reached from the public internet behind Cloudflare Access.
