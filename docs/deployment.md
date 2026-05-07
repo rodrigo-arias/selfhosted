@@ -40,5 +40,5 @@ If you'd rather not use gaia, deploy each stack directly:
 docker network create proxy   # only on first setup
 
 cd infra && docker compose --env-file ../.env up -d
-cd ../downloads && docker compose --env-file ../.env up -d
+cd ../media && docker compose --env-file ../.env up -d
 ```

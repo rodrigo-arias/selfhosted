@@ -1,6 +1,6 @@
 # Selfhosted
 
-A Docker-based home stack split into **infra** and **downloads**. Services share an external `proxy` Docker network and are reverse-proxied through **Nginx Proxy Manager** at `*.<your-domain>` on the LAN.
+A self-hosted homelab stack on Docker Compose, split into **infra** and **media**. Services share an external `proxy` network and are reverse-proxied through **Nginx Proxy Manager** at `*.<your-domain>` on the LAN.
 
 ## Quickstart
 
@@ -13,7 +13,7 @@ A Docker-based home stack split into **infra** and **downloads**. Services share
 selfhosted/
 │
 ├── infra/        # Reverse proxy, DNS, monitoring
-├── downloads/    # VPN-gated torrent client + *arr stack
+├── media/        # VPN-gated torrent client + *arr stack
 ├── data/         # Shared media (movies, tv, downloads)
 ├── docs/         # Setup and deployment guides
 ├── gaia          # Interactive deploy CLI
@@ -33,10 +33,10 @@ Subdomains map to services via proxy hosts configured in Nginx Proxy Manager. Th
 | `dns.<your-domain>`        | Pi-hole              | infra      |
 | `status.<your-domain>`     | Uptime Kuma          | infra      |
 | `alerts.<your-domain>`     | Ntfy                 | infra      |
-| `downloads.<your-domain>`  | qBittorrent (via Gluetun VPN) | downloads |
-| `indexer.<your-domain>`    | Prowlarr             | downloads  |
-| `tv.<your-domain>`         | Sonarr               | downloads  |
-| `movies.<your-domain>`     | Radarr               | downloads  |
-| `subs.<your-domain>`       | Bazarr               | downloads  |
+| `downloads.<your-domain>`  | qBittorrent (via Gluetun VPN) | media |
+| `indexer.<your-domain>`    | Prowlarr             | media      |
+| `tv.<your-domain>`         | Sonarr               | media      |
+| `movies.<your-domain>`     | Radarr               | media      |
+| `subs.<your-domain>`       | Bazarr               | media      |
 
 Cloudflared runs in the infra stack as well but has no UI — it opens an outbound tunnel to Cloudflare so selected subdomains can be reached from the public internet behind Cloudflare Access.

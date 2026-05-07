@@ -1,4 +1,4 @@
-# Downloads Stack
+# Media Stack
 
 VPN-gated torrent client and the *arr automation suite. See the main [README](../README.md) for the service overview.
 

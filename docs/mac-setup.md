@@ -24,7 +24,7 @@ default-host: http://<LAN_IP>:8090
 default-command: /opt/homebrew/bin/terminal-notifier -title "$title" -message "$message"
 subscribe:
   - topic: infra
-  - topic: downloads
+  - topic: media
 ```
 
 `default-command` runs once per message; `$title` and `$message` are substituted by the ntfy CLI. Use the absolute path to `terminal-notifier` — LaunchAgents run with a minimal `PATH`.

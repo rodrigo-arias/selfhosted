@@ -22,7 +22,7 @@ Copy `.env.example` to `.env` and fill in:
 | `MEDIA_ROOT` | Path for media files (movies, TV, downloads) |
 | `LAN_IP` | Host LAN IP — used for direct port bindings and local DNS |
 | `DOMAIN` | Domain used for reverse-proxied services (`*.<DOMAIN>`) |
-| `VPN_SERVICE_PROVIDER`, `VPN_WIREGUARD_PRIVATE_KEY`, `VPN_WIREGUARD_ADDRESS`, `VPN_COUNTRY` | Gluetun VPN config for the downloads stack |
+| `VPN_SERVICE_PROVIDER`, `VPN_WIREGUARD_PRIVATE_KEY`, `VPN_WIREGUARD_ADDRESS`, `VPN_COUNTRY` | Gluetun VPN config for the media stack |
 | `QBITTORRENT_USER` / `QBITTORRENT_PASS` | qBittorrent credentials |
 
 ## Required folders

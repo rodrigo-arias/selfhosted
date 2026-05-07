@@ -25,7 +25,7 @@ NPM's admin credentials, proxy hosts, and SSL certificates live in its internal 
    | Block Common Exploits  | On                                                     |
    | Websockets Support     | On for services with live UIs (Uptime Kuma, Sonarr/Radarr) |
 
-   For services that share Gluetun's network namespace (qBittorrent, gluetun-port-manager), the Forward Hostname is `gluetun` — those services don't have their own network interface. See the network topology diagram in [downloads/README.md](../downloads/README.md).
+   For services that share Gluetun's network namespace (qBittorrent, gluetun-port-manager), the Forward Hostname is `gluetun` — those services don't have their own network interface. See the network topology diagram in [media/README.md](../media/README.md).
 
 ### Pi-hole
 
